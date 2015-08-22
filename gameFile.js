@@ -87,18 +87,22 @@ function render(){
 
 	game.debug.cameraInfo(game.camera, 32, 32);
 	game.debug.text(player.currentBoost, 32, 500);
+	game.debug.text(player.currentRotation, 32, 564);
+
 
 }
 
 //initialises player variables
 function initPlayer(playerTo){
 
-	playerTo.maxBoost = 300;
-	playerTo.forwardAcc = 10;
+	playerTo.maxBoost = 500;
+	playerTo.forwardAcc = 5;
 
-	playerTo.turnSpeed = 30;
+	playerTo.turnMaxSpeed = 100;
+	playerTo.turnAcc = 10;
 
 	playerTo.currentBoost = 0;
+	playerTo.currentRotation = 0;
 
 }
 
@@ -120,11 +124,22 @@ function handleInputForPlayer(inputTo, playerTo){
 
 	//rotate the player if left or right is pressed
 	if (inputTo.left.isDown){
-		playerTo.body.rotateLeft(playerTo.turnSpeed);
+		if (Math.abs(playerTo.currentRotation) < playerTo.turnMaxSpeed){
+			playerTo.currentRotation -= playerTo.turnAcc;
+		}
 	}
 
 	if (inputTo.right.isDown){
-		playerTo.body.rotateRight(playerTo.turnSpeed);
+		if (Math.abs(playerTo.currentRotation) < playerTo.turnMaxSpeed){
+			playerTo.currentRotation += playerTo.turnAcc;
+		}
+	}
+
+	//stop rotating if no input
+	if (inputTo.left.isUp && inputTo.right.isUp){
+
+		playerTo.currentRotation = closerToZero(playerTo.currentRotation, playerTo.turnAcc);
+
 	}
 
 
@@ -140,6 +155,35 @@ function movePlayer(playerTo){
 		playerTo.body.moveForward(playerTo.currentBoost);
 	}
 
+	//rotate the player according to rotation
+	playerTo.body.rotateRight(playerTo.currentRotation);
+
+
 }
 
 
+
+//moves a number closer to zero by the amount specified
+function closerToZero(startingNumber, changeNumber){
+
+	//ensure cahgne is positive
+	var changeValue = Math.abs(changeNumber);
+	var returnValue = 0;
+
+	//adjust number so that it is closer to 0
+	if (startingNumber > 0) {
+		returnValue = startingNumber - changeValue;
+	} else if (startingNumber < 0){
+		returnValue = startingNumber + changeValue;
+	} else {
+		returnValue = 0;
+	}
+
+	//if value is lower than amount to change, return 0
+	if (Math.abs(returnValue) < changeNumber){
+		return 0;
+	} else {
+		return returnValue;
+	}
+
+}
